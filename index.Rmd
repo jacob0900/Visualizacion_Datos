@@ -1,0 +1,13 @@
+---
+title: "index"
+author: "Jacobo"
+date: "`r Sys.Date()`"
+output: bookdown::gitbook
+---
+
+
+```{r}
+bookdown::render_book("index.Rmd")
+
+```
+

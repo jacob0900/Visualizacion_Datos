@@ -1,0 +1,34 @@
+---
+title: "Tarea3_Visualizacion"
+output: html_document
+date: "2026-02-12"
+---
+
+
+Considere el conjunto de datos us_state_population.tsv ubicado en la carpeta de datos de Python de github. Repita el procedimiento planteado en cada ítem de esta sección para obtener el nuevo dataframe con las nuevas columnas Year y Population. Realice unión y separación utilizando las columnas State y Code.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+```{r}
+# Leer sin encabezados y asignar nombres manualmente
+df <- read.delim("C:/Users/jacob/OneDrive/Escritorio/Datasets/us_state_population.tsv", 
+                 header = FALSE, sep = "\t")
+
+# Asignar nombres de columnas
+colnames(df) <- c("State", "Code", "2010", "2011", "2012", "2013", 
+                  "2014", "2015", "2016", "2017", "2018")
+
+# Reshape de wide a long
+df_melted <- df %>%
+  pivot_longer(
+    cols = `2010`:`2018`,  # Otra forma de seleccionar las columnas
+    names_to = "Year",
+    values_to = "Population"
+  ) %>%
+  mutate(`State-Code` = paste(State, Code, sep = "_")) %>%
+  select(-State, -Code)
+
+head(df_melted, 20)
+```

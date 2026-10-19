@@ -1,0 +1,12 @@
+# Shapefiles del IGAC (muy pesados para GitHub)
+MAPAS/Servicio-199/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/

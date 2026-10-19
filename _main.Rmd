@@ -1,0 +1,15 @@
+---
+title: "PruebaPiloto"
+output: html_document
+date: "2026-01-29"
+---
+
+
+```{r}
+bookdown::render_book("index.Rmd")
+
+```
+
+
+<!--chapter:end:index.Rmd-->
+

@@ -1,0 +1,129 @@
+---
+title: "EDA_Visua"
+output: html_document
+date: "2026-02-21"
+---
+
+
+```{r, echo=FALSE}
+library(readxl)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(Amelia)
+```
+
+### Descripcion del problema 
+
+
+Aca debe de haber parrafo describiendo el problema, explicar que vamos a hacer una serie de tiempo 
+
+### Carga de Datos 
+```{r}
+# Importar el archivo Excel, saltando las 3 primeras filas
+df <- read_excel("C:/Users/jacob/OneDrive/Escritorio/Datasets/File.xlsx", skip = 3)
+
+# Renombrar columnas
+colnames(df) <- c("Fecha",
+                    "CreditosConsumo",
+                    "CreditosTesoreria",
+                    "CreditosOrdinarios",
+                    "CreditosPreferenciales",
+                    "TasaColocacionBR",
+                    "TasaColocacionSinTesoreria",
+                    "TasaColocacionTotal")
+
+# Convertir fechas desde número de serie
+df$Fecha <- as.Date(as.numeric(df$Fecha), origin = "1899-12-30")
+
+# Eliminar filas vacías (al inicio y al final)
+df <- df %>% filter(!is.na(Fecha))
+```
+
+
+### Exploracion inicial 
+
+
+## Naturaleza de los datos 
+
+```{r, echo=FALSE}
+
+# Crear el data frame con la información de las variables
+tabla_variables <- data.frame(
+  Variable = c(
+    "Fecha",
+    "CreditosConsumo",
+    "CreditosTesoreria",
+    "CreditosOrdinarios",
+    "CreditosPreferenciales",
+    "TasaColocacionBR",
+    "TasaColocacionSinTesoreria",
+    "TasaColocacionTotal"
+  ),
+  Tipo = c(
+    "Temporal",
+    rep("Numérica continua", 7)
+  ),
+  Definición = c(
+    "Fecha de registro mensual de la serie",
+    "Porcentaje de créditos de consumo otorgados",
+    "Porcentaje de créditos de tesorería otorgados",
+    "Porcentaje de créditos ordinarios otorgados",
+    "Porcentaje de créditos preferenciales otorgados",
+    "Tasa de colocación del Banco de la República",
+    "Tasa de colocación sin incluir créditos de tesorería",
+    "Tasa de colocación total del sistema"
+  ),
+  `Escala de Medición` = c(
+    "Intervalo",
+    rep("Razón", 7)
+  ),
+  check.names = FALSE
+)
+
+# Crear tabla formateada para bookdown
+kable(tabla_variables, 
+      caption = "Descripción de Variables del Dataset de Tasas de Interés (Colocación)",
+      booktabs = TRUE,
+      longtable = TRUE) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                latex_options = c("striped", "hold_position"),
+                full_width = FALSE,
+                font_size = 10) %>%
+  column_spec(1, bold = TRUE, width = "3cm") %>%
+  column_spec(2, width = "3cm") %>%
+  column_spec(3, width = "8cm") %>%
+  column_spec(4, width = "2.5cm")
+
+```
+
+
+
+## Caracteristicas del dataset 
+
+
+
+```{r}
+
+## Aca debemos de escribir las caracteristicas del dataset(Toca hacer un parrafo abajo ) 
+str(df)
+head(df)
+summary(df)
+```
+
+
+## Revision de datos faltantes 
+
+
+
+```{r}
+
+missmap(df)
+```
+Aca podemos observar que nuestro dataset no presenta ningun tipo de valor faltante lo que nos ayudara a la realizacion de la serie de Tiempo de manera mas efectiva 
+
+
+
+
+

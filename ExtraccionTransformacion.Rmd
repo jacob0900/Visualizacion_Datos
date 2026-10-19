@@ -1,0 +1,142 @@
+---
+title: "ExtraccionTransformacion"
+output: html_document
+date: "2026-02-04"
+---
+
+## Including Plots
+
+
+
+```{r }
+df<- read.csv("C:/Users/jacob/OneDrive/Escritorio/Datasets/StudyArea.csv", header=FALSE)
+
+
+```
+
+```{r}
+spec(df)
+```
+```{r}
+library(tidyverse)
+```
+# Filtrar 
+
+```{r}
+df %>% 
+  filter(TOTALACRES>=25000) -> subdf
+```
+
+
+```{r}
+subdf
+```
+
+
+#Filtrar teniendo en cuenta dos filas
+
+```{r}
+df %>% 
+  filter(TOTALACRES > 1000, YEAR_==2016) 
+```
+
+# FILTRAR VARIOS DATOS
+
+```{r}
+df %>% 
+  filter( YEAR_==c(2010,2011,2012)) 
+```
+
+#QUEDARTE CON FILAS ESPECIFICAS
+
+```{r}
+df %>% 
+  select(FIRENAME,TOTALACRES,YEAR_) 
+```
+
+
+```{r}
+df %>% 
+  select(FIRENAME,"ACRES"="TOTALACRES" ,YEAR_) 
+```
+
+```{r}
+df %>% 
+  select(contains("DATE"))
+```
+```{r}
+df %>% 
+  select(contains("DATE"),starts_with("TOTAL"))
+```
+
+```{r ejerc_9, message=FALSE,warning=FALSE}
+df %>% 
+  filter(TOTALACRES > 1000,YEAR_ == 2016) %>% 
+  select(NAME =FIRENAME, ACRES= TOTALACRES, YR= YEAR_) %>% 
+  arrange(ACRES) %>% 
+  tail(n=5)
+```
+
+### Organizar las filas
+
+Continuando con el ejemplo de los incendios forestales
+
+- Filtrar el conjunto de datos para que contenga solo los incendios de más de 1.000 acres quemados del año 2016. Despues selecciona las columnas `FIRENAME`, `TOTALACRES`, `YEAR_` y renombralas `NAME`,  `ACRES`, `YR`, respectivamente. Finalmente, ordena `ACRES` de forma ascendente y muestrame las 5 ultimas.
+
+```{r ejerc_9, message=FALSE,warning=FALSE}
+df %>% 
+  filter(TOTALACRES > 1000,YEAR_ == 2016) %>% 
+  select(NAME =FIRENAME, ACRES= TOTALACRES, YR= YEAR_) %>% 
+  arrange(desc(ACRES)) %>% 
+  tail(n=5)
+```
+
+### Añadir columnas con `mutate`
+
+
+Continuando con el ejemplo de los incendios forestales
+
+- Seleccione únicamente las columnas **ORGANIZATI**, **STATE**, **YEAR_**, **TOTALACRES**, **CAUSE** y **STARTDATED**, filtre los registros para que solo se incluyan los incendios con más de **1.000 acres** quemados y cuya causa sea **Humana** o **Natural**, cree una nueva columna llamada **DOY** que indique el día del año en que inició cada incendio a partir de la columna **STARTDATED**, y finalmente muestre las primeras filas del resultado.
+
+Carguemos nuevamente los datos
+
+```{r ejerc_11, message=FALSE,warning=FALSE}
+df %>% 
+  select(ORGANIZATI, STATE, YEAR_, TOTALACRES, CAUSE, STARTDATED) %>% 
+  filter(TOTALACRES>1000, CAUSE %in% c('Human','Natural')) %>% 
+  mutate(DOY= yday(as.Date(STARTDATED,
+                           format='%m/%d/%y%H:%M')))-> df_sol
+```
+
+### Agrupación y resumen de los datos
+
+
+Continuando con el ejemplo de incendios forestales
+
+- Seleccione únicamente las columnas **ORGANIZATI**, **STATE**, **YEAR_**, **TOTALACRES** y **CAUSE** , filtre los registros para que solo se incluyan los incendios con más de **1.000 acres** quemados, cree una nueva columna llamada **DECADE** que define la década en la que se produjo cada incendio, agrupa por**DECADE** y finalmente un resumen numérico completo del tamaño de los incendios forestales por década.
+
+```{r ejerc_12, message=FALSE,warning=FALSE}
+df %>% 
+  select(ORGANIZATI,STATE,YEAR_,TOTALACRES,CAUSE) %>% 
+  filter(TOTALACRES > 1000) %>% 
+  mutate(DECADE = ifelse(YEAR_ %in% 1980:1989,'1980-1989',
+                         ifelse(YEAR_ %in% 1990:1999,'1990-1999',
+                                ifelse(YEAR_ %in% 2000:2009,'2000-2009',
+                                       ifelse(YEAR_ %in% 2010:2016,'2010-2016','99'))))) %>% 
+  group_by(DECADE) %>% 
+  summarise(media_acres= mean(TOTALACRES),
+            ds_acres = sd(TOTALACRES),
+            mediana_acres = median(TOTALACRES),
+            ri_acres = IQR(TOTALACRES),
+            min_acres = min(TOTALACRES),
+            max_acres = max(TOTALACRES),
+            q1_acres =  quantile(TOTALACRES)[2],
+            q3_acres =  quantile(TOTALACRES)[4])-> df_sol_2
+ 
+
+# Vista rápida
+knitr::kable(df_sol_2)
+```
+
+
+

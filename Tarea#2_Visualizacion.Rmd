@@ -1,0 +1,25 @@
+---
+title: "Tarea#2_Visualizacion"
+output: html_document
+date: "2026-02-11"
+---
+
+```{r}
+library(tidyverse)
+df <- read.csv("C:/Users/jacob/OneDrive/Escritorio/Datasets/athlete_events.csv")
+```
+
+## Punto 1
+Genere una tabla que indique el número de medallas concedidas en cada uno de los cinco principales deportes en 2016.
+
+
+## Punto 2
+Elabore una tabla que muestre la distribución de la edad de los ganadores de medallas en los cinco principales deportes en 2016.
+
+## Punto 3
+Identifique qué equipos nacionales ganaron el mayor número de medallas en los cinco principales deportes en 2016.
+
+## Punto 4
+Presente un resumen de la tendencia del peso de los atletas masculinos y femeninos ganadores en los cinco principales deportes en 2016.
+
+

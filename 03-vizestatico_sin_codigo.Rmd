@@ -1,0 +1,587 @@
+# Exploración y visualización estática de datos {#vizestatico}
+
+
+```{r data1_vizest,message=FALSE,warning=FALSE}
+library(dplyr)
+library(readr)
+library(ggplot2)
+
+datos <- read_csv("data/StudyArea.csv")
+```
+
+- Visualicemos las 5 primeras observaciones
+
+```{r obs_vizest,message=FALSE,warning=FALSE}
+# TU CODIGO
+```
+
+- Ahora, la estructura de los datos
+
+```{r str_vizest,message=FALSE,warning=FALSE}
+# TU CODIGO
+```
+
+- Para este análisis, filtraremos los datos de modo que solo estén representados los <b><i>incendios que quemaron más de 1000 acres (4046.86 metros cuadrados o 0.4047 hectáreas) en los años 2010 a 2016</b></i>.
+
+```{r barraa_vizest,message=FALSE,warning=FALSE}
+df <-  # TU CODIGO
+```
+
+- Añada el código que que se ve a continuación para filtrar los datos y enviar los resultados a un gráfico de barras.
+
+```{r barra_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  ggplot(# TU CODIGO) + 
+  # TU CODIGO
+  scale_x_continuous(breaks = c(2010, 2011, 2012, 2013, 2014, 2015, 2016)) +
+  labs(x = 'Años',
+       y = 'Número de incendios') -> barras
+
+barras
+```
+
+
+- Otra forma de realizar el gráfico de barras es la siguiente
+
+```{r barra3_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  filter(TOTALACRES >= 1000,
+         YEAR_ %in% c(2010, 2011, 2012, 2013, 2014, 2015, 2016)) %>% 
+  count(YEAR_) %>% 
+  mutate(Porcentaje = (n / sum(n))*100) %>% 
+  ggplot(mapping = aes(x = factor(YEAR_),y=n))+
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = paste0(n, " (", round(Porcentaje,1), "%)")),
+            vjust = -0.5, size = 4) +
+  labs(x = 'Años',
+       y = 'Número de incendios (%)')+
+  theme_bw()
+```
+
+## Visualización de variable continua con un histograma
+
+Siguiendo los datos de incendios forestales del 2010 al 2016:
+
+- Introduzca el marco de datos y utilice la función `select()` para limitar las columnas y filtrar las filas para que sólo se incluyan los incendios superiores a 1.000 acres. Dado que tenemos un gran número de incendios forestales que quemaron sólo un pequeño número de acres, nos centraremos en los incendios que son un poco más grandes en este caso.
+
+```{r etl_vizest,message=FALSE,warning=FALSE}
+df %>%
+  # TU CODIGO %>%
+  # TU CODIGO
+```
+
+- Cree el histograma utilizando `ggplot()` con `geom_hist()` y un tamaño de la celda de 500. Los datos están claramente sesgados hacia el extremo inferior del número de acres quemados.
+
+```{r hist_vizest,message=FALSE,warning=FALSE}
+df %>%
+  select(ORGANIZATI, STATE, YEAR_, TOTALACRES, CAUSE) %>%
+  filter(TOTALACRES >= 1000) %>%
+  # TU CODIGO %>%
+  ggplot(# TU CODIGO) + 
+  # TU CODIGO +
+  labs(x = "Total Acres", y = "Número de incendios")+
+  theme_bw()
+```
+
+
+## Visualización de la covariación con gráficos de caja
+
+
+
+## Visualización de la covariación con el gráfico de burbuja
+
+
+
+- Extraiga el marco de datos y filtre las filas para que sólo se incluyan los **incendios de entre 5000 y 10000 acres**. A continuación, agrupe los datos por organización. La columna ORGANIZATI del conjunto de datos contiene datos categóricos de los **organismos del gobierno federal de EE.UU.** que han tenido tierras afectadas por incendios forestales. Por último utilice `ggplot()` con `geom_boxplot()` para crear un `boxplot` que muestre la distribución de incendios forestales por organización
+
+```{r cajas_vizest,message=FALSE,warning=FALSE}
+df %>%
+  filter(TOTALACRES >= 5000 & TOTALACRES <= 10000) %>%
+  group_by(ORGANIZATI) %>%
+  # TU CODIGO +
+  # TU CODIGO +
+  # TU CODIGO +
+  labs(
+    x = "Organización",
+    y = "Total acres",
+    title = "Distribución de acres totales por organización"
+  ) +
+  theme_bw()
+```
+
+- Extraiga el marco de datos y filtre las filas para que sólo se incluyan los **incendios forestales que se originaron por causas naturales o humanas**. Esto eliminará cualquier registro que son desconocidos o tienen valores perdidos. A continuación, utilice `geom_count()` para crear un **gráfico de símbolos graduados basado en el número de incendios por organización**.
+
+```{r burbuja_vizest,message=FALSE,warning=FALSE}
+df %>%
+  filter(CAUSE %in% c("Natural", "Human")) %>%
+  # TU CODIGO +
+  # TU CODIGO +
+  scale_color_manual(values = c("Natural" = "#1b9e77", "Human" = "#d95f02")) +
+  labs(x = "Organización",
+       y = "Causa",
+       color = "Causa",
+       size = "Frecuencia",
+       title = "Incendios por organización y causa") +
+  theme_bw()
+```
+
+- También puede obtener un recuento exacto del número de incendios por organización y causa
+
+```{r rec_vizest,message=FALSE,warning=FALSE}
+df %>%
+  # TU CODIGO
+```
+
+## Visualización 2D de contenedores y hexágonos
+
+
+- Cree un mapa 2D con `YEAR_` en el eje $x$ y `TOTALACRES` en el eje $y$
+
+```{r 2d_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  # TU CODIGO + 
+  # TU CODIGO + 
+  scale_fill_viridis_c(option = "plasma", name = "Frecuencia") +
+  labs(
+    x = "Year",
+    y = "Total Acres",
+    title = "Distribución conjunta de Year y Total Acres",
+    subtitle = "Mapa de calor con binning en 2D"
+  ) +
+  theme_bw()
+```
+
+El gráfico muestra la distribución conjunta de los años (`YEAR_`) y el número total de acres (`TOTALACRES`) mediante un mapa de calor con binning en dos dimensiones. Se observa que la mayor concentración de registros se encuentra en valores bajos de acres (menores a 100.000), lo que indica que la mayoría de las observaciones corresponden a superficies relativamente pequeñas. A su vez, existen pocos casos con valores muy altos (entre 300.000 y más de 600.000 acres), los cuales aparecen como rectángulos aislados y de baja frecuencia, reflejando la presencia de outliers. Finalmente, la acumulación de registros en casi todos los años sugiere un patrón consistente en el tiempo, con algunos picos más notorios después del año 2000.
+
+## Visualización de estadísticas ( resumen de los datos)
+
+- Restringir la lista de columnas y filtra la lista para incluir sólo los incendios forestales de más de 1000 acres
+
+```{r filt_vizest,message=FALSE,warning=FALSE}
+df <- datos %>%
+  select(ORGANIZATI, STATE, YEAR_, TOTALACRES, CAUSE) %>% 
+  filter(TOTALACRES >= 1000)
+```
+
+- Hagamos un resumen estadístico de la columna TOTALACRES
+
+```{r res_est_vizest,message=FALSE,warning=FALSE}
+df %>% 
+# TU CODIGO -> resumen_totalacres
+```
+
+El análisis se realizó sobre **7288 registros**, con un valor promedio cercano a **10813** y una gran variabilidad, dado que la desviación estándar es de aproximadamente **28579**. El **50% de los datos** se encuentra en torno a **3240**, lo que indica que la mitad de las observaciones están por debajo de ese valor. El **25% más bajo** de los registros toma valores hasta **1670**, mientras que el **25% más alto** supera los **8283**. El rango intermedio entre el 25% inferior y el 75% superior es de aproximadamente **6613**, reflejando una fuerte dispersión en los datos. Finalmente, los valores observados van desde un mínimo de **1000** hasta un máximo de **590620**, lo que muestra la presencia de valores extremos mucho más altos que la mayoría de las observaciones.
+
+## Visualización de un gráfico de correlación
+
+Es una representación gráfica de una matriz de correlaciones entre varias variables numéricas.
+
+- Se muestran en forma de mapa de calor (heatmap), círculos, o elipses que varían en tamaño y color según la intensidad y signo de la correlación.
+
+- Su objetivo es facilitar la identificación de relaciones lineales fuertes, tanto positivas como negativas, entre todas las variables del conjunto de datos.
+
+- Carguemos los datos de la banca
+
+```{r cor_est_vizest,message=FALSE,warning=FALSE}
+bank <- read_delim("https://raw.githubusercontent.com/cdeoroaguado/Datos/refs/heads/main/datamanip/bank/bank.csv",delim = ";",quote = "\"")
+
+head(bank,n=5)
+```
+
+- Selecciona las variables numéricas
+
+```{r filtro_est_vizest,message=FALSE,warning=FALSE}
+# Seleccionar las variables numéricas
+num_vars <- bank %>% 
+  select(age, balance, duration)
+```
+
+- Hagamos la matriz de correlación y el gráfico `heatmap` con las variables numéricas
+
+```{r corr_est_vizest,message=FALSE,warning=FALSE}
+# libreria
+library(corrplot)
+
+# Calcular matriz de correlación
+matriz_cor <- # TU CODIGO
+
+print(matriz_cor)
+
+# Heatmap 
+corrplot(matriz_cor, method="number")
+```
+
+Vemos que no hay correlación entre ellos.
+
+## Visualización de un gráfico de dispersión
+
+- Cargar el contenido del archivo `StudyArea.csv` en un marco de datos
+
+```{r dispersion_vizest,message=FALSE,warning=FALSE}
+df <- read_csv("data/StudyArea.csv")
+```
+
+- Utilice `ggplot()` para crear un gráfico de dispersión con el año en el eje $x$ y el total de acres quemados en el eje $y$.
+
+```{r dispersion1_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  select(ORGANIZATI, YEAR_, TOTALACRES) %>% 
+  group_by(YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES, na.rm = TRUE)) %>% 
+  # TU CODIGO +
+  # TU CODIGO +             
+  labs(title = "Evolución de Total Acres por Año",
+       x = "Año",
+       y = "Total Acres") +
+  theme_bw()
+```
+
+- Hay ocasiones en las que tiene sentido utilizar las escalas logarítmicas en los cuadros y gráficos. Una de las razones es responder a la asimetría hacia los valores grandes, es decir, los casos en los que uno o unos pocos puntos son mucho más grandes que el grueso de los datos. En el gráfico que acabamos de crear hay un par de puntos que entran en esta categoría en en el eje Y. Vuelva a crear el gráfico, pero esta vez utilice la función `log()` en la columna totalacres
+
+```{r dispersion1log_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  select(ORGANIZATI, YEAR_, TOTALACRES) %>% 
+  group_by(YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES, na.rm = TRUE)) %>% 
+  # TU CODIGO +
+  # TU CODIGO +             
+  labs(title = "Evolución de Total Acres por Año",
+       x = "Año",
+       y = "Total Acres") +
+  theme_bw()
+```
+
+## Visualización del gráfico de dispersión con linea de tendencia
+
+Los gráficos construidos con `ggplot()` pueden tener más de una geometría. Es habitual añadir una línea de predicción (regresión) al gráfico.
+
+Hay varias maneras de añadir una línea de regresión al gráfico de dispersión, una de ellas es utilizar la función `geom_smooth()` 
+
+- Regresion con `method = lm`
+
+```{r smoo_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  select(ORGANIZATI, YEAR_, TOTALACRES) %>% 
+  group_by(YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES, na.rm = TRUE)) %>% 
+  # TU CODIGO +
+  # TU CODIGO +
+  # TU CODIGO+
+  labs(title = "Evolución de Total Acres por Año",
+       x = "Año",
+       y = "Total Acres") +
+  theme_bw()
+```
+
+- Regresion con `method = loess`
+
+```{r smoot_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  select(ORGANIZATI, YEAR_, TOTALACRES) %>% 
+  group_by(YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES, na.rm = TRUE)) %>% 
+  ggplot(aes(x = YEAR_, y = log(totalacres))) +
+  geom_point(color = "darkred", size = 3) +
+  # TU CODIGO+
+  labs(title = "Evolución de Total Acres por Año",
+       x = "Año",
+       y = "Total Acres") +
+  theme_bw()
+```
+
+- Regresion con `method = loess` con intervalo de confianza
+
+```{r smooth1_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  select(ORGANIZATI, YEAR_, TOTALACRES) %>% 
+  group_by(YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES, na.rm = TRUE)) %>% 
+  ggplot(aes(x = YEAR_, y = log(totalacres))) +
+  geom_point(color = "darkred", size = 3) +
+  # TU CODIGO+
+  labs(title = "Evolución de Total Acres por Año",
+       x = "Año",
+       y = "Total Acres") +
+  theme_bw()
+```
+
+## Visualización de trazado de categorías
+
+En lugar de representar gráficamente todo el conjunto de incendios forestales, es posible que se quiera comprender mejor las tendencias por estado. En este paso creará un nuevo gráfico de dispersión que visualice las tendencias de los incendios forestales a lo largo del tiempo por estado
+
+- Reagrupar el marco de datos de los incendios forestales por estado y año, despues resuma los grupos por el total de hectáreas quemadas y Añade un parámetro de parámetro de color a la función `aes()` para que los puntos y la línea de regresión se se mapeen de acuerdo con el estado en el que se produjeron
+
+```{r smo_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  # TU CODIGO + 
+  # TU CODIGO + 
+  # TU CODIGO+
+  theme_bw()
+```
+
+## Visualizacion etiquetando nombres
+
+Puede añadir etiquetas a su gráfico mediante la función `geom_text()` o la función `geom_label()`
+
+
+```{r etiq_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x=YEAR_, y=log(totalacres))) + 
+  geom_point() +
+  geom_smooth(method=loess, se=TRUE) + 
+  # TU CODIGO+
+  theme_bw()
+```
+La pantalla está extremadamente desordenada así que vamos a ajustar algunos parámetros para hacer esto más fácil de leer.
+
+- Puede utilizar el parámetro `check_overlap` para eliminar cualquier etiqueta superpuesta. Actualice su código como se ve a continuación
+
+```{r etiq2_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x=YEAR_, y=log(totalacres))) + 
+  geom_point() +
+  geom_smooth(method=loess, se=TRUE) + 
+  # TU CODIGO+
+  theme_bw()
+```
+
+- Esto se ve un poco mejor, pero si se cambia el tamaño de la etiqueta a 2 se reducirá aún más reducir el desorden y la superposición, mientras que esperamos que siga siendo legible. Habrás observado que las etiquetas se sitúan directamente sobre los temas. Puede utilizar los parámetros `nudge_x` y `nudge_y` para mover las etiquetas en relación con el punto. Utilice `nudge_x` como se ve a continuación para ver cómo esto mueve las etiquetas horizontalmente
+
+```{r etiq3_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x=YEAR_, y=log(totalacres))) + 
+  geom_point() +
+  geom_smooth(method=loess, se=TRUE) + 
+  # TU CODIGO+
+  theme_bw()
+```
+
+- También puede colorear las etiquetas por categoría añadiendo el parámetro de color a la función `aes()` para `geom_text()`
+
+```{r etiq4_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x=YEAR_, y=log(totalacres))) + 
+  geom_point() +
+  geom_smooth(method=loess, se=TRUE) + 
+  # TU CODIGO+
+  theme_bw()
+```
+
+- También puedes añadir un subtítulo y un pie de foto con el código que ves a continuación
+
+```{r etiq5_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x=YEAR_, y=log(totalacres))) + 
+  geom_point() +
+  geom_smooth(method=loess, se=TRUE) + 
+  geom_text(aes(label=STATE,color=STATE), size=3, check_overlap = TRUE,nudge_x = 1.0)+
+  theme_bw()
+```
+
+- También puedes añadir un subtítulo y un pie de foto con el código que ves a continuación
+
+```{r etiq10_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x = YEAR_, y = log(totalacres))) + 
+  geom_point(color = "steelblue", size = 2, alpha = 0.7) +
+  # TU CODIGO+
+  labs(title=paste("La superficie quemada por incendios forestales las ultimas decadas"), subtitle=paste("1980-2016"), caption="Data from USGS")+
+  theme_bw()
+```
+
+- También puede actualizar las etiquetas X e Y del gráfico. Actualice estas etiquetas en su gráfico usando el código que ve abajo
+
+```{r etiq6_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x = YEAR_, y = log(totalacres))) + 
+  geom_point(color = "steelblue", size = 2, alpha = 0.7) +
+  geom_smooth(method = "loess", se = TRUE, span = 0.5, color = "darkorange")+
+  labs(title=paste("La superficie quemada por incendios forestales las ultimas decadas"), subtitle=paste("1980-2016"), caption="Data from USGS")+
+  scale_y_continuous(name="Log del total acres quemadas") + 
+  scale_x_continuous(name="Year quemados")+
+  theme_bw()
+```
+
+## Visualización de leyendas
+
+
+La función `theme()` puede utilizarse para controlar la ubicación de la leyenda y la función `guide()` puede utilizarse para proporcionar un control adicional de la leyenda
+
+- La función `theme()` junto con el argumento `legend.position` se utiliza para controlar la ubicación de la leyenda en el gráfico. Por defecto, la leyenda que hemos visto hasta ahora se ha colocado en el lado derecho del gráfico con una orientación vertical. Reposicione la leyenda en la parte inferior con el código siguiente.
+
+```{r ley1_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x = YEAR_, y = log(totalacres), color=STATE)) + 
+  geom_point() +
+  labs(title=paste("La superficie quemada por incendios forestales las ultimas decadas"), subtitle=paste("1980-2016"), caption="Data from USGS")+
+  scale_y_continuous(name="Log del total acres quemadas") + 
+  scale_x_continuous(name="Year quemados")+
+  theme_bw()+
+   # TU CODIGO
+```
+
+También puede eliminar explícitamente una leyenda estableciendo `legend.position = "none"`. Pruebe eso ahora si lo desea
+
+- Otros aspectos de la leyenda, como el número de filas en la leyenda, así como el tamaño del símbolo pueden ser controlados a través de la función guides(). Utilice el código que se ve a continuación para actualizar la leyenda a dos filas y con cada símbolo de tamaño 4
+
+```{r ley2_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x = YEAR_, y = log(totalacres), color=STATE)) + 
+  geom_point() +
+  labs(title=paste("La superficie quemada por incendios forestales las ultimas decadas"), subtitle=paste("1980-2016"), caption="Data from USGS")+
+  scale_y_continuous(name="Log del total acres quemadas") + 
+  scale_x_continuous(name="Year quemados")+
+  theme_bw()+
+  theme(legend.position="bottom")+
+  # TU CODIGO
+```
+
+## Visualiazción con facetas
+
+Una forma particularmente buena de graficar variables categóricas es dividir el gráfico en facetas, que son subparcelas que muestran cada una un subconjunto de los datos. Las funciones `facet_wrap()` y `facet_grid()` pueden utilizarse para crear facetas
+
+- Utilice la función `facet_wrap()` que se muestra en el código siguiente para crear un mapa de facetas que muestre el total de acres quemados por estado
+
+```{r ley3_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  group_by(STATE, YEAR_) %>% 
+  summarise(totalacres = sum(TOTALACRES)) %>% 
+  ggplot(aes(x = YEAR_, y = log(totalacres))) + 
+  geom_point() +
+  geom_smooth(method = "loess", se = TRUE, span = 0.5, color = "darkorange")+
+  labs(title=paste("La superficie quemada por incendios forestales las ultimas decadas"), subtitle=paste("1980-2016"), caption="Data from USGS")+
+  scale_y_continuous(name="Log del total acres quemadas") + 
+  scale_x_continuous(name="Year quemados")+
+  theme_bw()+
+  # TU CODIGO
+```
+
+## Visualización de tramas de violín
+
+Los gráficos de violín, que son similares a los gráficos de caja, también muestran la densidad de probabilidad en varios valores. Las áreas más gruesas del gráfico de violín indican una mayor probabilidad en ese valor. Normalmente, los gráficos de violín también incluyen un marcador para la mediana junto con el rango intercuartil (IQR). La función `geom_violin()` se utiliza para crear gráficos violín en `ggplot2`
+
+- Cargue el archivo `StudyArea.csv` y obtenga un subconjunto de columnas
+
+```{r nuevamente_vizest,message=FALSE,warning=FALSE}
+datos <- read_csv("data/StudyArea.csv")
+```
+
+- Obtenga un subconjunto de columnas, filtrar el marco de datos para que sólo se incluyan los incendios forestales de más de 5.000 acres se incluyan. Agrupe los incendios forestales por organización y guardalo en un objeto
+
+```{r nuevamente1_vizest,message=FALSE,warning=FALSE}
+df <- datos %>% 
+  select(ORGANIZATI, STATE, YEAR_, TOTALACRES, CAUSE) %>% 
+  filter(TOTALACRES >= 5000) %>% 
+  group_by(ORGANIZATI)
+```
+
+- Crear una gráfica básica de violín.
+
+```{r violin1_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  # TU CODIGO +
+  # TU CODIGO+
+  theme_bw()
+```
+
+- Puede añadir las observaciones individuales utilizando `geom_jitter()`. Si necesita mantener los puntos y dispersarlos horizontalmente, puede utilizar `geom_jitter(height = 0)`
+
+```{r violin2_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  ggplot(mapping = aes(x=ORGANIZATI, y=log(TOTALACRES))) +
+  geom_violin() + 
+  # TU CODIGO+
+  theme_bw()
+```
+
+- La media puede añadirse utilizando `stat_summary()` como se ve a continuación
+
+```{r violin3_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  ggplot( mapping = aes(x=ORGANIZATI, y=log(TOTALACRES))) +
+  geom_violin() + geom_jitter(height = 0, width = 0.1) + 
+  # TU CODIGO +
+  # TU CODIGO +
+  theme_bw()
+```
+
+- La función `box_plot()` puede utilizarse para añadir la `mediana` y el `IQR`
+
+```{r violin4_vizest,message=FALSE,warning=FALSE}
+df %>% 
+  ggplot(mapping = aes(x=ORGANIZATI, y=log(TOTALACRES))) +
+  geom_violin() + 
+  # TU CODIGO +
+  theme_bw()
+```
+
+## Visualización de gráficos de densidad
+
+- Los gráficos de densidad, creados con `geom_density()` calculan una estimación de la densidad, que es una versión suavizada de un histograma y se utiliza con datos continuos. `ggplot2` también puede calcular versiones 2D de la densidad, incluyendo contornos y gráficos de densidad con estilo de polígono
+
+- Tomemos los incendios forestales de más de 1.000 acres
+
+```{r densidad0_vizest,message=FALSE,warning=FALSE}
+df2 <- datos %>% 
+  select(ORGANIZATI, STATE, YEAR_, TOTALACRES, CAUSE) %>% 
+  filter(TOTALACRES >= 1000)
+```
+
+- Cree un gráfico de densidad con la función `geom_density()`
+
+```{r densidad_vizest,message=FALSE,warning=FALSE}
+df2  %>% 
+  ggplot(aes(TOTALACRES)) + 
+  # TU CODIGO+
+  theme_bw()
+```
+
+- También puede crear el mismo gráfico de densidad con una versión registrada de los datos
+
+```{r densidad2_vizest,message=FALSE,warning=FALSE}
+df2  %>% 
+  ggplot(aes(log(TOTALACRES))) + 
+  geom_density()+
+  theme_bw()
+```
+
+- A continuación, crearás gráficos 2D de los datos empezando por los contornos. Añade el código que ves a continuación
+
+```{r densidad3_vizest,message=FALSE,warning=FALSE}
+df2  %>% 
+  ggplot(aes(x=YEAR_, y=log(TOTALACRES))) + 
+  geom_point() +
+  # TU CODIGO+
+  theme_bw()
+```
+
+- Por último, cree una superficie de densidad 2D utilizando `stat_density_2d()`
+
+```{r densidad4_vizest,message=FALSE,warning=FALSE}
+df2  %>% 
+  ggplot(aes(x=YEAR_, y=log(TOTALACRES))) +
+  geom_density_2d() + 
+  # TU CODIGO+
+  theme_bw()
+```
+

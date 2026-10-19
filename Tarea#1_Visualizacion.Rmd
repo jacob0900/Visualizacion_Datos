@@ -1,0 +1,120 @@
+---
+title: "Tarea#1_Visualizacion"
+output: html_document
+date: "2026-02-09"
+---
+
+```{r}
+library(tidyverse)
+df <- read_csv("C:/Users/jacob/OneDrive/Escritorio/Datasets/StudyArea.csv", col_names = TRUE)
+
+str(df)
+
+```
+
+## Punto1 
+
+Filtrar los registros para incluir únicamente los incendios ocurridos en el estado de Idaho.
+
+```{r}
+subdf <- df %>% 
+  filter(STATE == 'Idaho')
+
+
+subdf
+```
+
+
+## Punto 2
+
+Seleccionar únicamente las columnas YEAR_, CAUSE y TOTALACRES.
+
+```{r}
+subdf1 <- df %>% 
+  select(YEAR_, TOTALACRES, CAUSE)
+
+subdf1
+```
+
+
+## Punto 3
+
+Renombrar estas columnas con nombres más claros y descriptivos.
+
+```{r}
+subdf2 <- df %>%
+  rename(
+    id = FID,
+    org = ORGANIZATI,
+    unidad = UNIT,
+    subunidad1 = SUBUNIT,
+    subunidad2 = SUBUNIT2,
+    nombre = FIRENAME,
+    causa = CAUSE,
+    año = YEAR_,
+    inicio = STARTDATED,
+    contencion = CONTRDATED,
+    control = OUTDATED,
+    estado = STATE,
+    cod_estado = STATE_FIPS,
+    hectareas = TOTALACRES
+  )
+
+subdf2
+```
+
+
+
+## Punto 4
+
+Agrupar la información por CAUSE y YEAR_.
+
+```{r}
+subdf3 <- df %>% 
+  select(YEAR_, CAUSE)
+
+subdf3
+```
+
+
+## Punto 5
+
+Resumir el total de acres quemados para cada combinación de causa y año.
+
+```{r}
+
+
+df %>% 
+  select(CAUSE, YEAR_, TOTALACRES) %>%
+  group_by(CAUSE, YEAR_) %>%
+  summarise(total_acres = sum(TOTALACRES),
+            promedio_acres = mean(TOTALACRES),
+            n_incendios = n(),
+            max_acres = max(TOTALACRES),
+            min_acres = min(TOTALACRES)) %>%
+  arrange(YEAR_, desc(total_acres)) 
+```
+
+
+## Punto 6
+
+Elaborar una visualización que muestre los resultados de manera clara.
+
+
+```{r}
+df %>% 
+  select(CAUSE, YEAR_, TOTALACRES) %>%
+  group_by(CAUSE, YEAR_) %>%
+  summarise(total_acres = sum(TOTALACRES)) %>%
+  ggplot(aes(x = YEAR_, y = total_acres, color = CAUSE, group = CAUSE)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(title = "Evolución de Acres Quemados por Causa",
+       x = "Año",
+       y = "Total de Acres",
+       color = "Causa") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma)
+```
+
+El gráfico muestra que los incendios de causa natural son responsables de la mayor cantidad de acres quemados, con picos extremos que superan los 5 millones de acres en 2007 y 2012. Los incendios causados por humanos, aunque significativos, muestran un patrón más estable y representan aproximadamente entre un 30-50% del área quemada por causas naturales en la mayoría de los años. Las causas indeterminadas o desconocidas son negligibles en comparación.

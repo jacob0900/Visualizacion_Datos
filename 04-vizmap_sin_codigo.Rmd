@@ -1,0 +1,383 @@
+# Visualización de datos geográficos con ggmap {#ggmap}
+
+
+## Paquete `ggmap`
+
+
+```{r ggmap, eval=FALSE, message=FALSE,warning=FALSE}
+install.packages("ggmap")
+```
+
+2. Crea una variable llamada **myLocation** y defínela como **California**, ubicación que usaremos más adelante
+
+```{r ggmap_cal, message=FALSE,warning=FALSE}
+myLocation <- 'California'
+```
+
+3. Llama a la función `get_map()` y pasa la variable de localización junto con un nivel de *Zoom de 6*. Necesitaras primero crear una `API key` en **Google Cloud Platform**. Si descargas la versión de desarrollo de `ggmap` desde `GitHub`, hay una función que guarda tu clave de la **API** de **Google** y la utiliza en las siguientes llamadas a la **API** a través de `ggmap`. Para instalarla desde la consola escribir
+
+```{r libggmap, message=FALSE, warning=FALSE}
+
+
+library(ggmap)
+
+```
+
+```{r llave, echo=FALSE, message=FALSE, warning=FALSE}
+mykey = 'AIzaSyDi5THREt0rJK5DT-wt8x7CBnYECku0pRI'
+```
+
+```{r googlemap, message=FALSE, warning=FALSE}
+register_google(key = mykey)
+
+get_googlemap('Camarones,La guajira') %>% 
+  ggmap()
+```
+
+6. Lo siguientes tipos de mapas también están disponibles para vista satelital en los mapas. Para ver más opciones visitar la documentación de **[get_googlemap](https://search.r-project.org/CRAN/refmans/ggmap/html/get_googlemap.html)**
+
+```{r get_googlemap, message=FALSE, warning=FALSE}
+# Obtener mapa de Google centrado en Colombia
+
+get_googlemap("Colombia", 
+              maptype ='hybrid', 
+              scale =5 ,          # escala del mapa (resolución)
+              zoom = 5 ) %>%       # nivel de acercamiento
+  ggmap()                         # mostrar el mapa
+
+```
+
+```{r get_googlemap_un, message=FALSE, warning=FALSE}
+# Obtener mapa de Google centrado en "Universidad del Norte"
+
+get_googlemap('Universidad del norte', 
+              maptype = 'roadmap',# TU CODIGO, # tipo de mapa (carreteras)
+              scale =  5,           # escala del mapa (resolución)
+              zoom =5 ) %>%       # nivel de acercamiento
+  ggmap()                          # mostrar el mapa
+```
+
+```{r get_googlemap_un_2, message=FALSE, warning=FALSE}
+# Obtener mapa de Google centrado en "Universidad del Norte"
+
+get_googlemap("Universidad del Norte", 
+              maptype = # TU CODIGO, # tipo de mapa (relieve/terreno)
+              scale = # TU CODIGO,           # escala del mapa (resolución)
+              zoom = # TU CODIGO) %>%       # nivel de acercamiento (detalle alto)
+  ggmap()                         # mostrar el mapa
+```
+
+```{r get_googlemap_un_3, message=FALSE, warning=FALSE}
+# Obtener mapa de Google centrado en "Universidad del Norte"
+
+get_googlemap("Universidad del Norte", 
+              maptype = 'hybrid', # híbrido (satélite + nombres de calles)
+              scale = 2,          # escala del mapa (resolución)
+              zoom = 18) %>%      # nivel de acercamiento muy alto (detalle máximo)
+  ggmap()                        # mostrar el mapa
+```
+
+## Integración de capas de información
+
+
+1. El siguiente código genera un mapa del estado de **California**, en el cual se visualizan los incendios forestales ocurridos entre los años **1980 y 2016** que afectaron superficies superiores a **1.000 hectáreas**.  
+
+```{r getmap_inf, message=FALSE,warning=FALSE}
+myLocation <- 'California'
+myMap <- get_map(location= myLocation, zoom=6)
+```
+
+- Carguemos los datos de **incendios forestales**
+
+```{r data_if,message=FALSE,warning=FALSE}
+library(tidyverse)
+
+df <- read.csv("C:/Users/jacob/OneDrive/Escritorio/RDataSets (1)/RDataSets/StudyArea_SmallFile.csv")
+head(df)
+```
+
+- Seleccionemos las siguientes variables `STATE`, `YEAR_`, `TOTALACRES`, `DLATITUDE`, `DLONGITUDE`
+
+```{r df_if,message=FALSE,warning=FALSE}
+library(tidyverse)
+
+df %>%  
+  select(STATE, YEAR_, TOTALACRES, DLATITUDE, DLONGITUDE) -> df
+
+knitr::kable(head(df))
+```
+
+2. Tomemos el estado de California y total de acres mayor o igual a 1000 y representemoslo en un diagrama de dispersión
+
+
+```{r df_if_map_disp,message=FALSE,warning=FALSE}
+# Filtrar incendios de más de 1000 acres en California
+df_a <- df %>% 
+  filter(TOTALACRES> 1000, STATE == 'California')
+
+# Graficar mapa base y ubicar los incendios
+ggmap(myMap) + 
+  geom_point(data = df_a, aes(x = DLONGITUDE, y = DLATITUDE), 
+             color = "red", alpha = 0.6, size = 2) +
+  labs(title = "Incendios forestales en California (1980-2016)",
+       subtitle = "Eventos mayores a 1.000 hectáreas",
+       x = "Longitud", y = "Latitud")
+```
+
+3. Ahora vamos a hacer el análisis un poco más interesante.  
+En primer lugar, utilizaremos la función de `dplyr::mutate()` para **agrupar los incendios por década**.  
+
+```{r group_decade, message=FALSE, warning=FALSE}
+# Crear variable DECADE agrupando por rangos de años
+df_b <- df %>%
+  mutate(DECADE = ifelse(YEAR_ %in% 1980:1989, "1980–1989",
+                  ifelse(YEAR_ %in% 1990:1999, "1990–1999",
+                  ifelse(YEAR_ %in% 2000:2009, "2000–2009",
+                  ifelse(YEAR_ %in% 2010:2019, "2010–2019", NA)))))
+
+```
+
+- A continuación, codificaremos por colores los **incendios forestales según la década (DECADE)** y crearemos un **mapa de símbolos graduados** en función del tamaño de cada incendio.  
+    - La propiedad `color` se usará para distinguir las décadas.  
+    - La propiedad `size`
+
+```{r fires_by_decade, message=FALSE, warning=FALSE}
+library(scales)
+
+# Mapa con incendios codificados por década y tamaño
+ggmap(myMap) +
+  geom_point(data = df_b, 
+             aes(x = DLONGITUDE, y = DLATITUDE, 
+                 color = DECADE, size = TOTALACRES),
+             alpha = 0.6) +
+  scale_size_continuous(name = "Superficie quemada (acres)",
+                        labels = label_number(big.mark = ","),
+                        range = c(2, 8)) +
+  labs(title = "Incendios forestales en California por década",
+       subtitle = "Eventos mayores a 1.000 hectáreas (1980-2016)",
+       x = "Longitud", y = "Latitud", color = "Década") +
+  theme_minimal()
+```
+
+- También es posible **hacer dinámico el mapa** usando `ggplotly`.
+Para ello se emplea la función [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html) para convertir el objeto de ggmap en un objeto `ggplot`.
+
+```{r map_ggplotly,message=FALSE,warning=FALSE}
+# Convertir a objeto ggplot y luego hacerlo interactivo
+p <- ggmap(myMap) +
+  geom_point(data = df_b, 
+             aes(x = DLONGITUDE, y = DLATITUDE, 
+                 color = DECADE, size = TOTALACRES),
+             alpha = 0.6)+
+  scale_size_continuous(range = c(2, 8))
+```
+
+```{r mp_ggplotly,message=FALSE,warning=FALSE}
+#install.packages("plotly")
+library(plotly)
+
+plotly_plot <- ggplotly(p)
+plotly_plot
+
+
+```
+
+4. Ahora vamos a modificar la vista del mapa para **enfocarnos en el sur de California**, específicamente en la **zona ubicada al norte de Los Ángeles**.  Para ello, utilizaremos coordenadas aproximadas de latitud y longitud que centren el mapa en esta región, lo que nos permitirá observar con mayor detalle la distribución espacial de los incendios forestales en dicha área.
+
+```{r sc,message=FALSE,warning=FALSE}
+library(ggmap)
+library(scales)
+
+# Obtener el mapa
+myMap <- get_map(location = "Santa Clarita, California", zoom = 10)
+
+ggmap(myMap) +
+  geom_point(data = df_b,
+             aes(x = DLONGITUDE, y = DLATITUDE,
+                 colour = DECADE,
+                 size = TOTALACRES)) +
+  scale_size_continuous(labels = label_number(big.mark = ","))
+
+```
+
+
+7. Para finalizar, crearemos un **mapa con facetas** que muestre los **puntos críticos de incendios en cada año de la década actual**.  
+El conjunto de datos disponible llega hasta el año **2016**, por lo que incluiremos únicamente la información correspondiente a ese periodo.  
+
+La función `facet_wrap()` de `ggplot2` resulta especialmente útil en este caso, ya que permite **dividir el gráfico en múltiples paneles organizados en cuadrícula**, mostrando de manera independiente cada subconjunto de datos y facilitando la comparación visual entre los diferentes años.
+
+```{r facet,message=FALSE,warning=FALSE}
+# Filtrar incendios de 2010 a 2016
+df_c <- filter(df, YEAR_ %in% 2010:2016)
+
+# Crear mapa facetado por año
+gg <- ggmap(myMap, extent = "device") +
+  # Capa de densidad (mapa de calor)
+  stat_density2d(data = df_c,
+    aes(x = DLONGITUDE, y = DLATITUDE,
+        fill = ..level.., alpha = ..level..),
+        size = 0.01, bins = 16, geom = "polygon") +
+  # Gradiente de colores (verde = baja densidad, rojo = alta densidad)
+  scale_fill_gradient(low = "green", high = "red") +
+  # Control de transparencia
+  scale_alpha(range = c(0.1, 0.5), guide = FALSE) +
+  # Facetas por año (4 columnas)
+  facet_wrap(~ YEAR, ncol = 4) +
+  # Estilo del título
+  theme(plot.title = element_text(size = 20)) +
+  # Márgenes del gráfico
+  theme(plot.margin = margin(1, 1, 1, 1, "cm"))
+
+# Mostrar gráfico
+gg
+
+
+```
+
+## Integración de capas vectoriales desde Shapefiles
+
+
+
+### Lectura de shapefiles en **R** con `sf`
+
+
+```{r data_shf,warning=FALSE,message=FALSE}
+# install.packages("sf")
+library(sf)
+
+# Nombre del shapefile de North Carolina en el paquete sf
+nameshp <- system.file("shape/nc.shp", package = "sf")
+
+# Leer shapefile con st_read()
+map <- st_read(nameshp)
+
+# Ver la clase del objeto
+class(map)
+
+# Mostrar primeras filas
+head(map)
+```
+### Construcción de mapas
+
+Los mapas son muy útiles para transmitir información geoespacial.  
+En esta sección se presentan ejemplos simples que demuestran el uso de algunos de los paquetes más comunes para la creación de mapas en R, tales como:
+
+- **ggplot2**  
+- **leaflet**  
+- **mapview**  
+- **tmap**
+
+A lo largo del resto del documento se mostrarán ejemplos más complejos que permiten visualizar resultados de diversas aplicaciones utilizando principalmente los paquetes **ggplot2** y **leaflet**.
+
+- Un mapa del estado de **Carolina del Norte**, importado mediante el paquete `sf`, puede generarse de la siguiente manera:
+
+```{r plot,warning=FALSE,message=FALSE}
+plot(map)
+```
+
+#### Paquete `ggplot2`
+
+- Por ejemplo, podemos crear un mapa de muertes súbitas infantiles en Carolina del Norte en 1974 (`SID74`) de la siguiente forma:
+
+```{r bir74,message=FALSE,warning=FALSE}
+# Graficar por la variable nacimientos en 1974)
+
+ggplot(map) +
+  geom_sf(aes(fill=SID74,color='black')) +
+  scale_fill_viridis_b() +
+  labs(title = "Muertes en 1974 por condado",
+       fill = "Muestres") +
+  theme_minimal()
+```
+
+- Veamos más mapas
+
+
+- A continuación, se muestra un ejemplo con el shapefile de **Carolina del Norte**, visualizando la variable `SID74` (muertes súbitas infantiles en 1974):  
+
+```{r plotlymap,warning=FALSE,message=FALSE}
+library(sf)
+library(ggplot2)
+library(plotly)
+
+# Crear gráfico con ggplot2
+p <- ggplot(map) +
+  geom_sf(# TU CODIGO) +
+  # TU CODIGO +
+  labs(title = "Muertes súbitas infantiles en Carolina del Norte (1974)",
+       fill = "SID74") +
+  theme_minimal()
+
+# Convertir a interactivo con plotly
+# TU CODIGO
+```
+
+
+#### Paquete `tmap`
+
+Por ejemplo, un mapa interactivo de la variable `SID74` en Carolina del Norte puede crearse de la siguiente forma:
+
+```{r tmap,message=FALSE,warning=FALSE}
+# install.packages("tmap")
+
+library(tmap)
+# TU CODIGO
+```
+
+#### Paquete `leaflet`
+
+- Continuando con los datos del **contado de Carolina del norte**
+
+```{r leaflet_data,message=FALSE,warning=FALSE}
+# TU CODIGO
+```
+
+- Esto significa que tu shapefil*e está proyectado en el **datum NAD27**, cuyo código estándar es **EPSG:4267*. Por lo que las coordenadas del shapefile de **NAD27 (EPSG:4267)** debemos transformala **WGS84 (EPSG:4326)**, entonces
+
+```{r transg_map, message=FALSE,warning=FALSE}
+map_leaflet <- # TU CODIGO
+```
+
+```{r transg_map_2, message=FALSE,warning=FALSE}
+# install.packages("leaflet")
+library(leaflet)
+
+pal <- # TU CODIGO
+
+leaflet(map_leaflet) %>%        # inicializar mapa con datos (objeto sf)
+  # TU CODIGO %>%                # agregar mapa base (tiles de OpenStreetMap)
+  # TU CODIGO %>%
+  addLegend(                    # agregar leyenda
+    pal = pal,                  # paleta de colores usada
+    values = ~SID74,            # variable representada en el mapa
+    opacity = 1                 # opacidad de la leyenda
+  )
+```
+
+#### Paquete `mapview`
+
+
+- Por ejemplo, podemos crear un mapa interactivo de la variable `SID74` en los **condados de Carolina del Norte** de la siguiente forma:
+
+```{r mapview1,warning=FALSE,message=FALSE}
+# install.packages("mapview")
+library(mapview)
+
+# TU CODIGO
+```
+
+
+- También podemos usar la función `sync()` para producir una vista en cuadrícula de **múltiples mapas sincronizados**, creados con **mapview** o **leaflet**. Esto permite explorar varias variables a la vez con **zoom y paneo sincronizados**. 
+
+- Por ejemplo, podemos crear mapas de muertes súbitas infantiles en **1974 (`SID74`)** y **1979 (`SID79`)**, y luego mostrarlos sincronizados de la siguiente manera:
+
+```{r mapview3,warning=FALSE,message=FALSE}
+# install.packages("leafsync")
+
+library(leafsync)
+m74 <- mapview(map, zcol = "SID74")
+m79 <- mapview(map, zcol = "SID79")
+m <- # TU CODIGO
+```
+
+
